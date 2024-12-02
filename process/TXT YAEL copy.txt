@@ -1,0 +1,75 @@
+AA30SEP0000M01170010003603          05025200000000000  BWXANZ        601100010000000000 SF0G * GN                   30SEP     SF0G * GN   00103OCTGYE                 GYE                 001001003002002001000001000000  00 000030SEP
+ 
+ 
+
+
+
+
+ 
+
+
+
+
+ 
+ 
+ 
+
+M101GONZALEZ RUGEL/JOSE LUIS                                                                                                031 02000100    
+010203
+0102
+
+01
+
+
+M201ADT00000000000X 2   RSTU      USD  430.00                               USD  614.70                                               0                    F  184.70               GYE  N SF0G A GN SF0G A GN  262823        1224  0201CM71337359140
+0102
+01
+*AX376740000001086#12/24
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+M3011 0HK03OCTAIRNGYE                 PTY                 CM 0300O 0828 1041             000                    738                                                                               0                                     1002024ARLVYF    
+ 
+ 
+ 
+M3021 0HK04OCTAIRNPTY                 GYE                 CM 0213O 1825 2040             000                    7M9                                                                               0                                     1002024ARLVYF    
+ 
+ 
+ 
+
+
+M3038A0GK06OCTOTH 01               MIA/RECREATE A/C LINES FOR AGENCY CREDIT CARD TICKETS
+M401ADTO      03OCTOK   OAA3TY2S      O  430.001OAA3TY2S                               
+M402ADT       04OCTOK   OAA3TY2S      O        1OAA3TY2S                               
+
+M50101  CM#7133735914/   0.00/  430.00/ 184.70/ONE/CCAX376740000001086 1.1GONZALEZ RUGEL JOSE LUIS/1/F/E
+M50201  CM#7133735915/   0.00/  430.00/ 184.70/ONE/CCAX376740000001086 1.1GONZALEZ MARIA/2/F/E
+M50301A ACC000/FPT/ 0.00/614.70/0.00/ONE/CASH 1.1GONZALEZ RUGEL JOSE LUIS/1-CF*7133735914*VCCM*TT8*FPCK*SG
+M50401A ACC000/FPT/ 0.00/614.70/0.00/ONE/CASH 1.1GONZALEZ MARIA/1-CF*7133735915*VCCM*TT8*FPCK*SG
+M6ADT1  GYE CM PTY215.00 CM GYE215.00USD430.00END
+
+M801S*RM W
+
+
+
+
+
+
+
+
+MX0010101   7133735914 008          64.50EC 
+          21.50ED 
+          32.97QB 
+           5.00QI 
+           6.23WT 
+           2.50AH 
+          12.00F3 
+          40.00FZ 
+
+
