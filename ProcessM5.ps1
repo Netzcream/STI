@@ -7,6 +7,7 @@
 # Variables
 $FolderPath = "C:\workspace\py\STI\process"
 $FolderDestination = "C:\workspace\py\STI\processed" # Carpeta para respaldo
+$FileAccounts = "C:\workspace\py\STI\cuentas.txt" # Carpeta para respaldo
 
 function Verify-Folder {
     param (
@@ -24,74 +25,85 @@ function Process-Files {
         [string]$FolderDestination
     )
 
-    $Files = Get-ChildItem -Path $FolderPath -File -Filter *.txt
+    $Files = Get-ChildItem -Path $FolderPath -File
 
     foreach ($File in $Files) {
+        #Verificar sin si la cuenta se encuentra en el archivo $FileAccounts
         $FilePath = $File.FullName
         $Content = Get-Content -Path $FilePath
         $ModifiedContent = @()
         $LinesToAdd = @()
         $QtLines = 0
-        $LastM5Index = -1 # Variable para almacenar el índice de la última línea que comienza con M5
+        $LastM5Index = -1
 
-        Write-Host "Procesando archivo: $FilePath"
+        $CountM5 = ($Content | Where-Object { $_ -match "^M5\d{4}(?!A)" }).Count
+        $CountM5A = ($Content | Where-Object { $_ -match "^M5\d{4}A" }).Count
+
+        if ($CountM5 -eq $CountM5A -and $CountM5 -gt 0) {
+            Write-Host "Archivo $FilePath parece que ya fue procesado, se ignora."
+            continue
+        }
 
         foreach ($Line in $Content) {
-            if ($Line -match "^M5\d{1}\d{1}01") {
+            if ($Line -match "^M5\d{4}(?!A)") {
                 $QtLines++
-                $LastM5Index = $ModifiedContent.Count # Actualizar el índice de la última línea M5
+                $LastM5Index = $ModifiedContent.Count
             }
             $ModifiedContent += $Line
         }
 
-        # Generar nuevas líneas y agregarlas al lugar correcto
         foreach ($Line in $Content) {
-            if ($Line -match "^M5\d{1}\d{1}01") {
+            if ($Line -match "^M5\d{4}(?!A)") {
                 try {
-                    # Extraer valores clave
                     $Parts = $Line -split "/"
-                    $Iteration = $Line.Substring(2, 3).Trim() # Iteración (e.g., 501, 502)
-                    $TicketNumber = ($Parts[0] -split "CM#")[1].Trim()
+                    if ($Parts.Count -lt 6) {
+                        throw "La línea no tiene suficientes partes después del split. Contenido: $Line"
+                    }
+
+                    $Iteration = $Line.Substring(2, 3).Trim()
+                    $LineNumber = $Line.Substring(4, 2).Trim()
+                    $TicketNumber = ($Parts[0] -split "#")[1].Trim()
+                    $Segment = $Parts[0].Trim()
+                    $Airline = ($Segment -split "#")[0].Trim()
+                    $Code = $Airline[-2..-1] -join ""
+
+                    if (-not ([decimal]::TryParse($Parts[2].Trim(), [ref]$null)) -or -not ([decimal]::TryParse($Parts[3].Trim(), [ref]$null))) {
+                        throw "Montos inválidos en la línea. Contenido: $Line"
+                    }
                     $Amount1 = [decimal]$Parts[2].Trim()
                     $Amount2 = [decimal]$Parts[3].Trim()
-                    
-                    $Name = ($Parts[5] -split "\s")[1..(($Parts[5] -split "\s").length-1)] -join " " # Obtener el nombre completo
+
+                    if (-not $Parts[5]) {
+                        throw "El campo de nombre no está presente. Contenido: $Line"
+                    }
+                    $Name = ($Parts[5] -split "\s")[1..(($Parts[5] -split "\s").length - 1)] -join " "
 
                     $Sum = $Amount1 + $Amount2
-
                     $QtLines++
-                    $FormattedQtLines = $QtLines.ToString("00") # Asegurar que tenga dos dígitos
-                    $NewLine = "M5${FormattedQtLines}01A ACC000/FPT/ 0.00/$Sum/0.00/ONE/CASH $Name/1-CF*$TicketNumber*VCCM*TT8*FPCK*SG"
+                    $FormattedQtLines = $QtLines.ToString("00")
+                    $NewLine = "M5${FormattedQtLines}${LineNumber}A ACC000/FPT/ 0.00/$Sum/0.00/ONE/CASH $Name/1-*CF$TicketNumber*VC$Code*TT8*FPCK*SG"
                     $LinesToAdd += $NewLine
-
-                } catch {
+                }
+                catch {
                     Write-Host "Error procesando línea: $Line" -ForegroundColor Red
+                    Write-Host "Descripción del error: $($_.Exception.Message)" -ForegroundColor Yellow
+                    Write-Host "Detalle del error (stack trace): $($_.Exception.StackTrace)" -ForegroundColor Gray
                 }
             }
         }
-
-
         if ($LastM5Index -ne -1) {
             $ModifiedContent = $ModifiedContent[0..$LastM5Index] + $LinesToAdd + $ModifiedContent[($LastM5Index + 1)..($ModifiedContent.Count - 1)]
         }
-
-
         Verify-Folder -Folder $FolderDestination
         $OriginalFilePath = Join-Path -Path $FolderDestination -ChildPath $File.Name
         Move-Item -Path $FilePath -Destination $OriginalFilePath -Force
-
         Set-Content -Path $FilePath -Value $ModifiedContent
         Write-Host "Archivo modificado y guardado en: $FilePath"
     }
 }
 
-Write-Host "Iniciando procesamiento de archivos..."
-
-# Verifico carpetas
+Write-Host "Procesando de archivos..."
 Verify-Folder -Folder $FolderPath
 Verify-Folder -Folder $FolderDestination
-
-# Procesar archivos
 Process-Files -FolderPath $FolderPath -FolderDestination $FolderDestination
-
 Write-Host "Proceso completado."
