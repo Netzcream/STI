@@ -130,5 +130,6 @@ Write-Host "Procesando archivos..."
 Verify-Folder -Folder $FolderPath
 Verify-Folder -Folder $FolderDestination
 $Accounts = Load-Accounts -FileAccounts $FileAccounts
+Write-Host $Accounts  
 Process-Files -FolderPath $FolderPath -FolderDestination $FolderDestination -Accounts $Accounts
 Write-Host "Proceso completado."
