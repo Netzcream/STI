@@ -29,6 +29,27 @@ function Load-Accounts {
     return Get-Content -Path $FileAccounts
 }
 
+function Add-M3Line {
+    param (
+        [array]$Content,
+        [string]$Date
+    )
+
+    $LastM3Line = $Content | Where-Object { $_ -match "^M3\d{4}" } | Select-Object -Last 1
+    if ($LastM3Line) {
+        $LastM3Number = [int]($LastM3Line.Substring(2, 2))
+        $NextM3Number = $LastM3Number + 1
+        $FormattedNextM3Number = $NextM3Number.ToString("00")
+        $NewM3Line = "M3${FormattedNextM3Number}8A0GK${Date}OTH 01               MIA/RECREATE A/C LINES FOR AGENCY CREDIT CARD TICKETS"
+
+        $ExistingLine = $Content | Where-Object { $_ -match "OTH 01\s+MIA/RECREATE A/C LINES FOR AGENCY CREDIT CARD TICKETS" }
+        if (-not $ExistingLine) {
+            $Content += $NewM3Line
+        }
+    }
+    return $Content
+}
+
 function Process-Files {
     param (
         [string]$FolderPath,
@@ -130,6 +151,7 @@ function Process-Files {
         if ($LastM5Index -ne -1) {
             $ModifiedContent = $ModifiedContent[0..$LastM5Index] + $LinesToAdd + $ModifiedContent[($LastM5Index + 1)..($ModifiedContent.Count - 1)]
         }
+        $Content = Add-M3Line -Content $Content -Date (Get-Date -Format "ddMMMyy").ToUpper()
         Verify-Folder -Folder $FolderDestination
         $OriginalFilePath = Join-Path -Path $FolderDestination -ChildPath $File.Name
         Move-Item -Path $FilePath -Destination $OriginalFilePath -Force
